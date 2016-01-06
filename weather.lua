@@ -15,6 +15,10 @@ function speed_milh2ms(wind_speed_mh)  --[[  Функция переводит �
   return wind_speed_mh/0.621371/60/60*1000
 end
 
+function math_round(num, accuracy) --[[  Функция округляет число с заданной точностью (accuracy - количество знаков после запятой) ]]--
+    return tonumber(string.format('%0.'..accuracy..'f',num))
+end
+
 function apparent_temp(rel_him, temp_с, wind_speed_ms, radiation) 
   --[[
   Функция перевода температуры сухого термометра в температуру, ощущаемую человеком с учетом скорости ветра, солнечного излучения и влажностью.
@@ -37,6 +41,7 @@ function wind_chill(temp_c, wind_speed_ms)
   temp_с — Температура в градусах цельсия
   wind_speed_ms — Скорость ветра в метрах в секунду. 
   Функция возвращает значение в градусах цельсия
+  Зависимости: speed_ms2milh, deg_cel2fah, deg_fah2cel
   ]]--
   if (wind_speed_ms > 1.3 and temp_c < 10) then
     local wind_speed_mh = speed_ms2milh(wind_speed_ms)
@@ -56,7 +61,7 @@ function rel2abs_him(rel_him, temp_с, pressure_in_mmhg, pressure_in_pa)
   pressure_in_mmhg — давление в мм ртутного столба или pressure_in_pa — давление в паскалях(вместо отсутствующего значения можно передавать nil)
   Функция возвращает значение в кг/м3
 
-  Пример: rel2abs_him(60, 25, nil, 740, nil) — 60% влажности, 25°C, давление 740мм р.с.   
+  Зависимости: pressure_saturated_water_vapor
   ]]--
   local pressure_svf = pressure_saturated_water_vapor(temp_с, pressure_in_mmhg, pressure_in_pa)
   local result = ((rel_him/100)*pressure_svf)*100/(461.5*(temp_с+273.15))
@@ -69,19 +74,20 @@ function pressure_saturated_water_vapor(temp_с, pressure_in_mmhg, pressure_in_p
   temp_с — Температура в градусах цельсия
   pressure_in_mmhg — давление в мм ртутного столба или pressure_in_pa — давление в паскалях(вместо отсутствующего значения можно передавать nil)
   Функция возвращает значение в гектопаскалях
-
-  pressure_saturated_water_vapor(25, 740, nil) — 60% влажности, 25°C, давление 740мм р.с.   
   ]]--
   if (pressure_in_mmhg ~= nil and pressure_in_pa == nil) then
     pressure_in_pa = pressure_in_mmhg*133.322/100
   end
-  local result = (1.0016+(3.15*(10^-6)*pressure_in_pa)-(0.074/pressure_in_pa)) * (6.112*(math.exp((17.27*temp_с)/(237.7+temp_с))))
+  local result = (1.0016+(3.15*(10^-6)*pressure_in_pa)-(0.074/pressure_in_pa)) * (6.112*(math.exp((17.62*temp_с)/(243.12+temp_с))))
   return result
 end
 
-
-
-wind_speed = 0
-temp = 15
-
-print(wind_chill(temp, wind_speed),  apparent_temp(50, temp, wind_speed, 0))
+if (math_round(12.66, 1) == 12.7) and (math_round(12.11, 1) == 12.1) then print("Test math_round passed") else print("Test math_round failed") end
+if (math_round(deg_fah2cel(10), 1) == -12.2) then print("Test deg_fah2cel passed") else print("Test deg_fah2cel failed") end
+if (math_round(deg_cel2fah(10), 1) == 50) then print("Test deg_cel2fah passed") else print("Test deg_cel2fah failed") end
+if (math_round(speed_ms2milh(10), 1) == 22.4) then print("Test speed_ms2milh passed") else print("Test speed_ms2milh failed") end
+if (math_round(speed_milh2ms(10), 1) == 4.5) then print("Test speed_milh2ms passed") else print("Test speed_milh2ms failed") end
+if (math_round(apparent_temp(70, 27, 5, 0), 1) == 27.9) then print("Test apparent_temp passed") else print("Test apparent_temp failed") end
+if (math_round(wind_chill(-15, 10), 1) == -26.9) then print("Test wind_chill passed") else print("Test wind_chill failed") end
+if (math_round(rel2abs_him(60, 25, 760), 3) == 0.014) then print("Test rel2abs_him passed") else print("Test rel2abs_him failed") end
+if (math_round(pressure_saturated_water_vapor(25, 760), 2) == 31.75) then print("Test pressure_saturated_water_vapor passed") else print("Test pressure_saturated_water_vapor failed") end
