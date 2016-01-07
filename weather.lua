@@ -1,31 +1,58 @@
 
-function deg_fah2cel(fah_degrees)  --[[  Функция переводит градусы фаренгейта в градусы цельсия  ]]--
+function deg_fah2cel(fah_degrees)  
+  --[[  
+  The function converts degrees Fahrenheit to Celsius
+  Функция переводит градусы фаренгейта в градусы цельсия  
+  ]]--
   return 5/9*(fah_degrees-32)
 end
 
-function deg_cel2fah(cel_degrees)  --[[  Функция переводит градусы цельсия в градусы фаренгейта   ]]--
+function deg_cel2fah(cel_degrees)  
+  --[[  
+  The function convert degrees Celsius to Fahrenheit
+  Функция переводит градусы цельсия в градусы фаренгейта   
+  ]]--
   return 9*cel_degrees/5+32
 end
 
-function speed_ms2milh(wind_speed_ms)  --[[   Функция переводит скорость ветра в м/с в мили/час   ]]--
+function speed_ms2milh(wind_speed_ms)  
+  --[[   
+  The function converts the wind speed from meters per second to miles per hour
+  Функция переводит скорость ветра из метров в секунду в мили в час   
+  ]]--
   return wind_speed_ms*60*60/1000*0.621371
 end
 
-function speed_milh2ms(wind_speed_mh)  --[[  Функция переводит скорость ветра в милях/час в м/с  ]]--
+function speed_milh2ms(wind_speed_mh)  
+  --[[  
+  The function converts the wind speed from miles per hour to meters per second
+  Функция переводит скорость ветра из миль в час в метры в секунду  
+  ]]--
   return wind_speed_mh/0.621371/60/60*1000
 end
 
-function math_round(num, accuracy) --[[  Функция округляет число с заданной точностью (accuracy - количество знаков после запятой) ]]--
-    return tonumber(string.format('%0.'..accuracy..'f',num))
+function math_round(num, accuracy) 
+  --[[  
+  The function rounds a number to the specified accuracy ('accuracy' - the number of decimal places)
+  Функция округляет число с заданной точностью ('accuracy' - количество знаков после запятой) 
+  ]]--
+  return tonumber(string.format('%0.'..accuracy..'f',num))
 end
 
 function apparent_temp(rel_him, temp_с, wind_speed_ms, radiation) 
   --[[
-  Функция перевода температуры сухого термометра в температуру, ощущаемую человеком с учетом скорости ветра, солнечного излучения и влажностью.
-  rel_him — Относительная влажность
-  temp_с — Температура в градусах цельсия
-  wind_speed_ms — Скорость ветра в метрах в секунду. 
-  radiation — Солнечное излучение в ваттах на квадратный метр(примерные уровни можно определить исходя из времени года, погоды и текущего времени. Летом днем на ярком солнце - 800, осенью и весной 450, зимой 300, при облачности снижается вдвое, после заката солна снижается до нуля), для расчета без него можно не указывать, или указывать ноль.
+  The function takes the dry bulb temperature in the temperature felt by human, adjusted for wind speed, amount of sun and humidity.
+  'rel_him' - Relative humidity
+  'temp_s'' - Temperature in degrees Celsius(Use deg_fah2cel to convert from degrees Fahrenheit)
+  'wind_speed_ms' - The wind speed in meters per second(Use speed_milh2ms to convert from miles per hour)
+  'radiation' - solar radiation in watts per square meter (approximate levels can be determined based on the time of year, the weather and current time. In the summer afternoon in the bright sun - 800, in the fall and spring 450, in the winter of 300, with cloud cover is reduced by half, after sunset is reduced to zero) to compute without it you can not specify (pass nil), or pass zero.
+  The function returns the value in degrees Celsius(Use deg_cel2fah to convert to Fahrenheit)
+
+  Функция перевода температуры сухого термометра в температуру, ощущаемую человеком, с учетом скорости ветра, солнечного излучения и влажностью.
+  'rel_him' — Относительная влажность
+  'temp_с'' — Температура в градусах цельсия
+  'wind_speed_ms' — Скорость ветра в метрах в секунду. 
+  'radiation' — Солнечное излучение в ваттах на квадратный метр(примерные уровни можно определить исходя из времени года, погоды и текущего времени. Летом днем на ярком солнце - 800, осенью и весной 450, зимой 300, при облачности снижается вдвое, после заката солнца снижается до нуля), для расчета без него можно не указывать(передавать nil), или передавать ноль.
   Функция возвращает значение в градусах цельсия
   ]]--
   if (radiation == nil) then radiation = 0 end
@@ -37,11 +64,17 @@ end
 
 function wind_chill(temp_c, wind_speed_ms)
   --[[
+  The function for calculating wind and cold index - a simplified version of the apparent temperature.
+  'temp_s'' - Temperature in degrees Celsius(Use deg_fah2cel to convert from degrees Fahrenheit)
+  'wind_speed_ms' - The wind speed in meters per second(Use speed_milh2ms to convert from miles per hour)
+  The function returns the value in degrees Celsius(Use deg_cel2fah to convert to Fahrenheit)
+  Dependencies: 'speed_ms2milh', 'deg_cel2fah', 'deg_fah2cel'
+
   Функция расчета ветро-холодового индекса — упрощенной версии кажущейся температуры на основе температуры сухого термометра и скорости ветра. 
-  temp_с — Температура в градусах цельсия
-  wind_speed_ms — Скорость ветра в метрах в секунду. 
+  'temp_с' — Температура в градусах цельсия
+  'wind_speed_ms' — Скорость ветра в метрах в секунду. 
   Функция возвращает значение в градусах цельсия
-  Зависимости: speed_ms2milh, deg_cel2fah, deg_fah2cel
+  Зависимости: 'speed_ms2milh', 'deg_cel2fah', 'deg_fah2cel'
   ]]--
   if (wind_speed_ms > 1.3 and temp_c < 10) then
     local wind_speed_mh = speed_ms2milh(wind_speed_ms)
@@ -55,13 +88,19 @@ end
 
 function rel2abs_him(rel_him, temp_с, pressure_in_mmhg, pressure_in_pa) 
   --[[
-  Функция перевода относительной влажности в абсолютную(количество воды в воздухе)
-  rel_him — Относительная влажность
-  temp_с — Температура в градусах цельсия
-  pressure_in_mmhg — давление в мм ртутного столба или pressure_in_pa — давление в паскалях(вместо отсутствующего значения можно передавать nil)
-  Функция возвращает значение в кг/м3
+  The function converts relative to absolute humidity (amount of water in the air)
+  'rel_him' - Relative humidity
+  'temp_s'' - Temperature in degrees Celsius(Use deg_fah2cel to convert from degrees Fahrenheit)
+  'pressure_in_mmhg' - pressure in mmHg or 'pressure_in_pa' - pressure in Pascals (instead of missing values can be passed 'nil')
+  The function returns the value in kg/m3
+  Dependencies: 'pressure_saturated_water_vapor'
 
-  Зависимости: pressure_saturated_water_vapor
+  Функция перевода относительной влажности в абсолютную(количество воды в воздухе)
+  'rel_him' — Относительная влажность
+  'temp_с' — Температура в градусах цельсия
+  'pressure_in_mmhg' — давление в мм ртутного столба или 'pressure_in_pa' — давление в паскалях(вместо отсутствующего значения можно передавать 'nil')
+  Функция возвращает значение в кг/м3
+  Зависимости: 'pressure_saturated_water_vapor'
   ]]--
   local pressure_svf = pressure_saturated_water_vapor(temp_с, pressure_in_mmhg, pressure_in_pa)
   local result = ((rel_him/100)*pressure_svf)*100/(461.5*(temp_с+273.15))
@@ -70,10 +109,15 @@ end
 
 function pressure_saturated_water_vapor(temp_с, pressure_in_mmhg, pressure_in_pa)
   --[[
+  The function for calculating the pressure of saturated steam at a given pressure and temperature
+  'temp_s'' - Temperature in degrees Celsius(Use deg_fah2cel to convert from degrees Fahrenheit)
+  'pressure_in_mmhg' - pressure in mmHg or 'pressure_in_pa' - pressure in Pascals (instead of missing values can be passed 'nil')
+  The function returns a value in hPa
+
   Функция расчета давления насыщенного водяного пара при определенном давлении и температуре
-  temp_с — Температура в градусах цельсия
-  pressure_in_mmhg — давление в мм ртутного столба или pressure_in_pa — давление в паскалях(вместо отсутствующего значения можно передавать nil)
-  Функция возвращает значение в гектопаскалях
+  'temp_с' — Температура в градусах цельсия
+  'pressure_in_mmhg' — давление в мм ртутного столба или 'pressure_in_pa' — давление в паскалях(вместо отсутствующего значения можно передавать 'nil')
+  Функция возвращает значение в гектопаскалях(hPa)
   ]]--
   if (pressure_in_mmhg ~= nil and pressure_in_pa == nil) then
     pressure_in_pa = pressure_in_mmhg*133.322/100
@@ -81,6 +125,7 @@ function pressure_saturated_water_vapor(temp_с, pressure_in_mmhg, pressure_in_p
   local result = (1.0016+(3.15*(10^-6)*pressure_in_pa)-(0.074/pressure_in_pa)) * (6.112*(math.exp((17.62*temp_с)/(243.12+temp_с))))
   return result
 end
+
 
 if (math_round(12.66, 1) == 12.7) and (math_round(12.11, 1) == 12.1) then print("Test math_round passed") else print("Test math_round failed") end
 if (math_round(deg_fah2cel(10), 1) == -12.2) then print("Test deg_fah2cel passed") else print("Test deg_fah2cel failed") end
