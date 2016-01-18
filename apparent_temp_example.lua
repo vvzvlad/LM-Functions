@@ -125,7 +125,7 @@ if (response_yahoo ~= nil and response_owm ~= nil) then
   
   local radiation_max = sun_radiation(datetime.month, own_lat, sunrise, sunset)
   local radiation_multiplier = sun_bright(sunrise, sunset, datetime.hour, datetime.min)/100
-  local radiation_cloud_multiplier = normalize(0, 100, owm_cloud)/100
+  local radiation_cloud_multiplier = normalize(0, 200, owm_cloud)/100
   local radiation = radiation_max*radiation_multiplier*radiation_cloud_multiplier
   
   local a_temp = apparent_temp(humidity, temp, windspeed, radiation)
