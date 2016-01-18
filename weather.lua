@@ -138,7 +138,7 @@ function normalize(max,min,data)
   'min' - the minimum value of the range
   'data' - value
   The function returns a percentage value.
-  Example: Conversion the signal quality of the -db percentage. -90db Is a weak signal, -50db is a good signal. Convert -60db power value of the received signal in percentage of the reception quality:
+  Example: Conversion the signal quality of the -db percentage. -90db is a weak signal, -50db is a good signal. Convert -60db power value of the received signal in percentage of the reception quality:
   normalize (50,90,60) = 75%
   Example: Conversion of the battery voltage to percentage charge. Maximum battery voltage is 3V, the minimum operating voltage 1.9V. Convert the value of 2.2V in percentage charge:
   normalize (3,1.9,2.2) = 28%
