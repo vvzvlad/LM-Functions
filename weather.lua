@@ -36,7 +36,12 @@ function math_round(num, accuracy)
   The function rounds a number to the specified accuracy ('accuracy' - the number of decimal places)
   Функция округляет число с заданной точностью ('accuracy' - количество знаков после запятой) 
   ]]--
-  return tonumber(string.format('%0.'..accuracy..'f',num))
+  if (accuracy == 0) then
+    num = math.floor(num+0.49)
+  else
+    num = tonumber(string.format('%0.'..accuracy..'f',num))
+  end
+  return num
 end
 
 function apparent_temp(rel_him, temp_с, wind_speed_ms, radiation) 
@@ -126,6 +131,73 @@ function pressure_saturated_water_vapor(temp_с, pressure_in_mmhg, pressure_in_p
   return result
 end
 
+function normalize(max,min,data)
+  --[[
+  The function of bringing in any range of values to percent:
+  'max' - the maximum value of the range
+  'min' - the minimum value of the range
+  'data' - value
+  The function returns a percentage value.
+  Example: Conversion the signal quality of the -db percentage. -90db Is a weak signal, -50db is a good signal. Convert -60db power value of the received signal in percentage of the reception quality:
+  normalize (50,90,60) = 75%
+  Example: Conversion of the battery voltage to percentage charge. Maximum battery voltage is 3V, the minimum operating voltage 1.9V. Convert the value of 2.2V in percentage charge:
+  normalize (3,1.9,2.2) = 28%
+  
+  Функция приведения значения в произвольном диапазоне к процентам:
+  'max' — максимальное значение диапазона
+  'min' — минимальное значение диапазона
+  'data' — значение
+  Функция возвращает процентное значение.
+  Пример: Пересчет качества сигнала из -db в проценты. -90db это плохой прием, -50db это хороший прием. Переведем полученное значение мощности принятого сигнала -60db в проценты качества приема:
+  normalize(50,90,60) = 75%
+  Пример: Пересчет напряжения батареи в проценты заряда. Максимальное напряжение батареи 3в, минимальное напряжение работы устройства 1.9в. Переведем значение 2.2в в проценты заряда:
+  normalize(3,1.9,2.2) = 28%
+  ]]--
+
+  if (max < min) then 
+    data = math.max(math.min(data, min), max)
+    data = math.ceil(((data-max)*(100/(min-max)))-100)
+    if (data > 0) then data = 0 end
+    if (data < -100) then data = -100 end 
+    data = math.abs(data)
+  else
+    data = math.max(math.min(data, max), min)
+    data = math.ceil((data-min)*(100/(max-min)))
+    if (data > 100) then data = 100 end 
+    if (data < 0) then data = 0 end 
+  end
+  return data
+end
+
+function sun_bright(sunrise, sunset, h, m)
+  --[[
+  Function luminance calculating sun percentage of maximum per day
+  'sunrise' - sunrise (in minutes)
+  'sunset' - call time (in minutes)
+  'h' - the hour
+  'm' - the minutes
+  The function returns a percentage value.
+  Example: calculating the brightness of the sun at 12:23 when the sun rises at 8:00 and sets at 18:
+  sun_bright (8 * 60, 18 * 60, 12, 23) = 87%
+
+  Функция вычисления яркости солнца в процентах от максимального за день
+  'sunrise' — время восхода(в минутах)
+  'sunset' — время захода(в минутах)
+  'h' — значение часов
+  'm' — значение минут
+  Функция возвращает процентное значение.
+  Пример: вычисление яркости солнца в 12:23, если солнце восходит в 8 часов, а заходит в 18:
+  sun_bright(8*60, 18*60, 12, 23) = 87%
+  ]]--
+  m = m + h*60
+  noon = sunrise+(sunset-sunrise)/2
+  bright = normalize(0, noon-sunrise, math.abs(noon-m))
+  return bright
+end
+
+
+
+
 
 if (math_round(12.66, 1) == 12.7) and (math_round(12.11, 1) == 12.1) then print("Test math_round passed") else print("Test math_round failed") end
 if (math_round(deg_fah2cel(10), 1) == -12.2) then print("Test deg_fah2cel passed") else print("Test deg_fah2cel failed") end
@@ -136,3 +208,8 @@ if (math_round(apparent_temp(70, 27, 5, 0), 1) == 27.9) then print("Test apparen
 if (math_round(wind_chill(-15, 10), 1) == -26.9) then print("Test wind_chill passed") else print("Test wind_chill failed") end
 if (math_round(rel2abs_him(60, 25, 760), 3) == 0.014) then print("Test rel2abs_him passed") else print("Test rel2abs_him failed") end
 if (math_round(pressure_saturated_water_vapor(25, 760), 2) == 31.75) then print("Test pressure_saturated_water_vapor passed") else print("Test pressure_saturated_water_vapor failed") end
+if (normalize(0, 100, 40) == 60) and (normalize(1000, 0, 600) == 60 and (normalize(100, 0, -60) == 0) and (normalize(100, 0, 110) == 100)) then print("Test normalize passed") else print("Test normalize failed") end
+if (sun_bright(527, 993, 12, 40) == 100 and sun_bright(527, 993, 8, 0) == 0 and sun_bright(527, 993, 17, 0) == 0) then print("Test sun_bright passed") else print("Test sun_bright failed") end
+
+
+
