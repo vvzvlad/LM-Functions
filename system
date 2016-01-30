@@ -1,0 +1,61 @@
+grp.diffupdate = function(object,value)
+  if (grp.getvalue(object) ~= value) then
+  	grp.update(object, value)
+  end
+end
+
+
+function http_request(request_url)
+  local ltn12 = require 'ltn12'
+  local https = require 'ssl.https'
+  local http = require 'socket.http'
+  local request_body = ''
+  local response_body = { }
+  local body, code, hdrs, stat
+
+  local _, _, protocol = string.find(request_url, "^(.+)://")
+
+  if (protocol ~= "http" and protocol ~= "https") then 
+    return true, 'Not correct URL'
+  end
+
+
+  if (protocol == 'https') then
+    body, code, hdrs, stat = https.request
+      {
+        url = request_url;
+        method = "POST";
+        headers =
+        {
+          ["Content-Type"] = "application/x-www-form-urlencoded";
+          ["Content-Length"] = #request_body;
+        };
+        source = ltn12.source.string(request_body);
+        sink = ltn12.sink.table(response_body);
+        protocol = "tlsv1";
+      }
+  end
+
+  if (protocol == 'http') then
+    body, code, hdrs, stat = http.request
+      {
+        url = request_url;
+        method = "POST";
+        headers =
+        {
+          ["Content-Type"] = "application/x-www-form-urlencoded";
+          ["Content-Length"] = #request_body;
+        };
+        source = ltn12.source.string(request_body);
+        sink = ltn12.sink.table(response_body);
+      }
+  end
+  
+  if (code ~= 200) then
+    --log(body, code, hdrs, stat)
+    return "Error code: "..code, response_body
+  end
+  local result = table.concat(response_body)
+
+  return nil, result
+end
